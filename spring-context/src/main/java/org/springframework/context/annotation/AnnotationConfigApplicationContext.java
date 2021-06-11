@@ -89,8 +89,20 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
   	 * @param componentClasses  一个或多个组件类——例如，配置了 @Configuration 的类
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		/*
+			初始化 ApplicationContext 容器
+			1.
+		*/
 		this();
+		/*
+			注册组件配置类
+			1.
+		*/
 		register(componentClasses);
+		/*
+			刷新 spring，完善spring容器
+			1.
+		*/
 		refresh();
 	}
 
