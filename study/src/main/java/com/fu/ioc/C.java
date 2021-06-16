@@ -1,14 +1,13 @@
-package com.fu.test.ioc;
+package com.fu.ioc;
 
 import org.springframework.stereotype.Component;
 
 /**
- * a
+ * c
  *
  * @author Fu
- * @date 2021/6/10 10:15
+ * @date 2021/6/10 10:16
  */
 @Component
-public class A {
-
+public class C {
 }

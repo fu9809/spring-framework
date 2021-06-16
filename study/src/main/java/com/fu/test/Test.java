@@ -1,7 +1,7 @@
-package com.fu.test.test;
+package com.fu.test;
 
-import com.fu.test.config.AppConfig;
-import com.fu.test.ioc.A;
+import com.fu.config.AppConfig;
+import com.fu.ioc.A;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
