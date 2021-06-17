@@ -53,12 +53,22 @@ import java.util.function.Supplier;
  */
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
 
+	/**
+	 * 带注释的 Bean 定义阅读器
+	 * 定义一个 读取器，用来读取加了注解的 Bean
+	 */
 	private final AnnotatedBeanDefinitionReader reader;
 
+	/**
+	 * 类路径 Bean 定义扫描器
+	 * 这是个扫描器，扫描 在指定路径下所有加了注解的类
+	 */
 	private final ClassPathBeanDefinitionScanner scanner;
 
 
 	/**
+	 * 创建一个需要填充的新 AnnotationConfigApplicationContext
+	 *
 	 * Create a new AnnotationConfigApplicationContext that needs to be populated
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 */
@@ -91,7 +101,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
 		/*
 			初始化 ApplicationContext 容器
-			1.
+			1. 因为该类有父类，先调用父类的无参构造方法，然后调用自己的无参构造方法
+			2. 在自己的构造方法中初始化一个读取器和扫描器
 		*/
 		this();
 		/*
