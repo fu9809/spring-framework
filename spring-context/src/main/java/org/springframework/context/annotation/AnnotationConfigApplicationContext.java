@@ -67,7 +67,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 
 
 	/**
-	 * 创建一个需要填充的新 AnnotationConfigApplicationContext
+	 * 创建一个需要填充的新 AnnotationConfigApplicationContext.
 	 *
 	 * Create a new AnnotationConfigApplicationContext that needs to be populated
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
