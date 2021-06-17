@@ -1,4 +1,4 @@
-package com.fu.config;
+package com.fu.test.config;
 
 import org.springframework.context.annotation.ComponentScan;
 
