@@ -73,6 +73,7 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 	@Override
 	@Nullable
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		// 判断 bean 对象是否实现了以下列举的几种接口之一，如果都没有实现，则不做处理；
 		if (!(bean instanceof EnvironmentAware || bean instanceof EmbeddedValueResolverAware ||
 				bean instanceof ResourceLoaderAware || bean instanceof ApplicationEventPublisherAware ||
 				bean instanceof MessageSourceAware || bean instanceof ApplicationContextAware)){
@@ -98,6 +99,12 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 		return bean;
 	}
 
+	/**
+	 * 调用感知接口.
+	 * 这里就是项目中经常用到的一些扩展点，为什么会生效的原因
+	 * 比如 bean实现了ApplicationContextAware这个接口，我们只需要写一个set方法，就可以获得 ApplicationContext对象.
+	 * @param bean bean对象
+	 */
 	private void invokeAwareInterfaces(Object bean) {
 		if (bean instanceof EnvironmentAware) {
 			((EnvironmentAware) bean).setEnvironment(this.applicationContext.getEnvironment());
@@ -115,6 +122,9 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 			((MessageSourceAware) bean).setMessageSource(this.applicationContext);
 		}
 		if (bean instanceof ApplicationContextAware) {
+//			// 这里做一个测试，如果是 IndexDao 这个类，就不赋值；结果为：IndexDao虽然实现了ApplicationContextAware接口，
+//			// 也重写了方法，但是获取不到ApplicationContext对象
+//			if (!bean.getClass().getSimpleName().equals("IndexDao"))
 			((ApplicationContextAware) bean).setApplicationContext(this.applicationContext);
 		}
 	}
