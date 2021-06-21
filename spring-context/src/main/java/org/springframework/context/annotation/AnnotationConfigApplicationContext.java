@@ -54,14 +54,20 @@ import java.util.function.Supplier;
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
 
 	/**
-	 * 带注释的 Bean 定义阅读器
-	 * 定义一个 读取器，用来读取加了注解的 Bean
+	 * 带注释的 Bean 定义读取器
+	 * 定义一个 读取器，构造方法里还会初始化一个注册器BeanDefinitionRegistry
+	 * 		（其实就是 AnnotationConfigApplicationContext 本身，因为其实现了BeanDefinitionRegistry接口）
+	 * 作用：把扫描到的类，解析并包装成 BeanDefinition 对象；（之后会使用注册器，将 BD 存入 BeanDefinitionMap 中）
+	 *   用于对特定注解（如@Service、@Repository)的类进行读取转化成BeanDefinition对象，
+	 *   	(BeanDefinition是 Spring中极其重要的一个概念，它存储了bean对象的所有特征信息，如是否单例，是否懒加载，factoryBeanName等)
+	 *
+	 *  通过读取器读取，是把普通类变成springBean 的方法之一；一般外部对象，即用户自定义的对象，使用这种方式注册springBean
 	 */
 	private final AnnotatedBeanDefinitionReader reader;
 
 	/**
 	 * 类路径 Bean 定义扫描器
-	 * 这是个扫描器，扫描 在指定路径下所有加了注解的类
+	 * 作用：用于扫描在指定路径下所有的Bean
 	 */
 	private final ClassPathBeanDefinitionScanner scanner;
 
@@ -101,18 +107,23 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
 		/*
 			初始化 ApplicationContext 容器
-			1. 因为该类有父类，先调用父类的无参构造方法，然后调用自己的无参构造方法
+			1. 因为该类有父类，先调用父类的无参构造方法，然后调用自己的无参构造方法；父类的构造方法所做的事情
+				1.1 实例化 BeanFactory 工厂，用于生成Bean对象
+				1.2
 			2. 在自己的构造方法中初始化一个读取器和扫描器
+				2.1 初始化BeanDefinition读取器AnnotatedBeanDefinitionReader，用于读取加了注解的类，将类读取并解析为BeanDefinition对象
+				2.2 初始化BeanDefinition扫描器ClassPathBeanDefinitionScanner，用于扫描指定路径下加了注解的类
 		*/
 		this();
 		/*
 			注册组件配置类
-			1.
+			1. 将自定义的配置类注册到spring容器中，可配置多个
 		*/
 		register(componentClasses);
 		/*
 			刷新 spring，完善spring容器
-			1.
+			1. 初始化spring容器；包括：设置启动事件；设置启动状态；初始化任何占位符属性源；
+			2. 初始化刷新spring内部的bean
 		*/
 		refresh();
 	}
@@ -176,6 +187,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	//---------------------------------------------------------------------
 
 	/**
+	 * 注册一个或多个要处理的组件类.
 	 * Register one or more component classes to be processed.
 	 * <p>Note that {@link #refresh()} must be called in order for the context
 	 * to fully process the new classes.

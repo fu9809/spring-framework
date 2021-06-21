@@ -16,11 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -37,6 +32,11 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Utility class that allows for convenient registration of common
@@ -130,6 +130,7 @@ public abstract class AnnotationConfigUtils {
 
 
 	/**
+	 * 在给定的注册表中注册所有相关的注解后处理器。
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
 	 */
@@ -148,19 +149,39 @@ public abstract class AnnotationConfigUtils {
 	public static Set<BeanDefinitionHolder> registerAnnotationConfigProcessors(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
+		// 从当前环境中获取一个 Bean工厂
 		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
 		if (beanFactory != null) {
 			if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
+				// AnnotationAwareOrderComparator 主要解析 @Order 和 @Priority；用于bean注册时的排序
 				beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
 			}
 			if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
+				// ContextAnnotationAutowireCandidateResolver 提供了处理延迟加载的功能
 				beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
 			}
 		}
 
+		/**
+		 * BeanDefinitionHolder 内部只有3个属性，BeanName, BeanDefinition, aliases(别名)；
+		 * 为了方便传参，没有什么特别大的作用
+		 */
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
 
+		// containsBeanDefinition() : 判断是否包含了具有给定名称的 bean 定义；
+		//		调用了 AbstractApplicationContext中的 containsBeanDefinition 方法，
+		//		最终调用DefaultListableBeanFactory中containsBeanDefinition方法，this.beanDefinitionMap.containsKey(beanName)
+		//   	就是看 BeanDefinitionMap 中是否有指定的key
+		// 初始化时，由于 BeanDefinitionMap 是空的，所以肯定会进入方法
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+			// RootBeanDefinition；用来描述这是一个spring内部的Bean
+			/**
+			 * 	ConfigurationClassPostProcessor 的类型是 BeanDefinitionRegistryPostProcessor，
+			 *		而 BeanDefinitionRegistryPostProcessor 最终实现了 BeanFactoryPostProcessor 接口
+			 *	普通Java类 转为 springBean的第二种方法：
+			 *		通过BeanDefinition接口的实现类的构造方法，转为springBean对象
+			 *		这种方法一般是 spring内部的对象 转为springBean所用的方式
+			 */
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
