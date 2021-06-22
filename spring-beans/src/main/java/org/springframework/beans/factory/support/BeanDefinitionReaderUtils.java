@@ -150,6 +150,10 @@ public abstract class BeanDefinitionReaderUtils {
 	}
 
 	/**
+	 * 就是把 BeanDefinition 注册到 BeanFactory中；
+	 * 其核心就是调用 DefaultListableBeanFactory中的registerBeanDefinition方法，将 BeanDefinition 添加到 BeanDefinitionMap 中
+	 * 如果含有别名，还会把别名注册到 BeanDefinition 的属性中
+	 *
 	 * Register the given bean definition with the given bean factory.
 	 * @param definitionHolder the bean definition including name and aliases
 	 * @param registry the bean factory to register with
