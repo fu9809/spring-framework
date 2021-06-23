@@ -88,8 +88,7 @@ public class AnnotatedBeanDefinitionReader {
 		this.registry = registry;
 		// 初始化条件评估器
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
-		// 在给定的注册表中注册所有相关的注解后处理器。
-		// 将注册器注册到后置处理器
+		// 将spring内部的 6个后置处理对象注册到指定的容器中（AnnotationConfigApplicationContext）。
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 

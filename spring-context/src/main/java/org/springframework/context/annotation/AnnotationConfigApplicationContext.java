@@ -79,8 +79,15 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 */
 	public AnnotationConfigApplicationContext() {
-		// 
+		/**
+		 * 初始化一个 BD 读取器；
+		 * 会把spring内部的 六大对象 创建并添加到容器中
+ 		 */
 		this.reader = new AnnotatedBeanDefinitionReader(this);
+		/**
+		 * 初始化一个 BD 扫描器
+		 * 用于扫描指定路径下的 BD
+		 */
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
@@ -106,25 +113,29 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
   	 * @param componentClasses  一个或多个组件类——例如，配置了 @Configuration 的类
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
-		/*
+		/**
 			初始化 ApplicationContext 容器
 			1. 因为该类有父类，先调用父类的无参构造方法，然后调用自己的无参构造方法；父类的构造方法所做的事情
 				1.1 实例化 BeanFactory 工厂，用于生成Bean对象
-				1.2
 			2. 在自己的构造方法中初始化一个读取器和扫描器
 				2.1 初始化BeanDefinition读取器AnnotatedBeanDefinitionReader，用于读取加了注解的类，将类读取并解析为BeanDefinition对象
+		 			2.1.1 会将spring内部的六大后置处理对象添加到spring容器中
 				2.2 初始化BeanDefinition扫描器ClassPathBeanDefinitionScanner，用于扫描指定路径下加了注解的类
+		 			2.2.1 注册默认过滤器
+		 			2.2.2 设置环境
+		 			2.2.3 初始化资源加载器
 		*/
 		this();
-		/*
+		/**
 			注册组件配置类
-			1. 将自定义的配置类注册到spring容器中，可配置多个
+			1. 将自定义的配置类注册到spring容器中，可配置多个；这里只会将配置类注册到 spring容器
 		*/
 		register(componentClasses);
-		/*
+		/**
 			刷新 spring，完善spring容器
 			1. 初始化spring容器；包括：设置启动事件；设置启动状态；初始化任何占位符属性源；
 			2. 初始化刷新spring内部的bean
+		 	3. 将spring扫描到的类也加入spring容器中
 		*/
 		refresh();
 	}
