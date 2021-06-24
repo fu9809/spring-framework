@@ -249,7 +249,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 	/**
 	 * 根据传入的注册器，构建和验证 配置模型
-	 * 1. 校验BeanDefinition是否有 @Configuration,@Component 等注解
+	 * 1. 判断BeanDefinition是否有 @Configuration,@Component 等注解
+	 *
 	 * Build and validate a configuration model based on the registry of
 	 * {@link Configuration} classes.
 	 */
@@ -260,17 +261,24 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		for (String beanName : candidateNames) {
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
 			if (beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE) != null) {
+				// 如果 BeanDefinition 的属性 configurationClass 有值，证明已经处理过了，无需再次处理
 				if (logger.isDebugEnabled()) {
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
-			// checkConfigurationClassCandidate() 判断BeanDefinition是否有 @Configuration,@Component 等注解
+			/**
+			 * checkConfigurationClassCandidate() 判断BeanDefinition是否
+			 * 		有 @Configuration,@Component，@Import，@ImportResource，@ComponentScan，@Component，@Bean等注解
+			 * 	如果是 @Configuration && proxyBeanMethods == true ，则此 beanDef 是个配置类，configurationClass 为 full
+			 * 	如果是 proxyBeanMethods == false 或者 加了其他注解；则此 beanDef 是个配置类，configurationClass 为 lite
+			 */
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
 			}
 		}
 
 		// Return immediately if no @Configuration classes were found
+		// 如果没有找到@Configuration 类，则立即返回
 		if (configCandidates.isEmpty()) {
 			return;
 		}

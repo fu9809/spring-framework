@@ -133,19 +133,29 @@ abstract class ConfigurationClassUtils {
 		// 根据元数据，获取 @Configuration 注解属性
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
-			// 加了注解，并且
+			/**
+			 * 如果加了@Configuration 注解，并且 proxyBeanMethods = true; 代理 Bean 方法
+			 * 		将BeanDefinition 的 configurationClass 属性设置为 full
+			 */
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
 		else if (config != null || isConfigurationCandidate(metadata)) {
+			/**
+			 * 如果加了注解，并且 proxyBeanMethods = false;
+			 * 或者没有 @Configuration 注解，但是有 @Import，@ImportResource，@ComponentScan，@Component，@Bean中的一个，
+			 * 		则将BeanDefinition 的 configurationClass 属性设置为 lite
+			 */
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
 		else {
+			// 都没有，则返回false
 			return false;
 		}
 
 		// It's a full or lite configuration candidate... Let's determine the order value, if any.
 		Integer order = getOrder(metadata);
 		if (order != null) {
+			// 如果有 Order 属性，则设置order属性
 			beanDef.setAttribute(ORDER_ATTRIBUTE, order);
 		}
 
