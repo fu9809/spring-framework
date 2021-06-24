@@ -16,14 +16,8 @@
 
 package org.springframework.context.annotation;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -40,6 +34,11 @@ import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Utilities for identifying {@link Configuration} classes.
@@ -74,11 +73,13 @@ abstract class ConfigurationClassUtils {
 
 
 	/**
+	 * 检查给定的 bean 定义是否是配置类的候选者.或者在配置组件类中声明的嵌套组件类，也可以自动注册
+	 * 		判断 BeanDefinition 是否加了注解
 	 * Check whether the given bean definition is a candidate for a configuration class
 	 * (or a nested component class declared within a configuration/component class,
 	 * to be auto-registered as well), and mark it accordingly.
-	 * @param beanDef the bean definition to check
-	 * @param metadataReaderFactory the current factory in use by the caller
+	 * @param beanDef the bean definition to check.要检查的 beanDefinition
+	 * @param metadataReaderFactory the current factory in use by the caller.调用者当前使用的工厂
 	 * @return whether the candidate qualifies as (any kind of) configuration class
 	 */
 	public static boolean checkConfigurationClassCandidate(
@@ -93,22 +94,29 @@ abstract class ConfigurationClassUtils {
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
+			// 如果 beanDef 是 AnnotatedBeanDefinition的实例，并且 className 和 BeanDefinition中的元数据的类名相同，
+			// 则直接从BeanDefinition中获取元数据
 			metadata = ((AnnotatedBeanDefinition) beanDef).getMetadata();
 		}
 		else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
 			// Check already loaded Class if present...
 			// since we possibly can't even load the class file for this Class.
+			// 如果 BeanDefinition 是 AbstractBeanDefinition的实例，并且 beanDef 有 BeanClass 属性存在
+			// 则实例化 StandardAnnotationMetadata
 			Class<?> beanClass = ((AbstractBeanDefinition) beanDef).getBeanClass();
+			// 如果可以转换为以下几种类型，则直接返回false
 			if (BeanFactoryPostProcessor.class.isAssignableFrom(beanClass) ||
 					BeanPostProcessor.class.isAssignableFrom(beanClass) ||
 					AopInfrastructureBean.class.isAssignableFrom(beanClass) ||
 					EventListenerFactory.class.isAssignableFrom(beanClass)) {
 				return false;
 			}
+			// 通过标准反射工厂方法，实例化 AnnotationMetadata 对象
 			metadata = AnnotationMetadata.introspect(beanClass);
 		}
 		else {
 			try {
+				// 如果是其他类型，就通过 元数据读取器获取元数据
 				MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(className);
 				metadata = metadataReader.getAnnotationMetadata();
 			}
@@ -121,8 +129,11 @@ abstract class ConfigurationClassUtils {
 			}
 		}
 
+		// 判断这个BeanDefinition存在的类，是否加了 @Configuration 注解
+		// 根据元数据，获取 @Configuration 注解属性
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
+			// 加了注解，并且
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
 		else if (config != null || isConfigurationCandidate(metadata)) {

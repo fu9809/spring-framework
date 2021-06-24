@@ -494,11 +494,17 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
-			// 告诉子类刷新内部 bean 工厂。
+			/**
+			 * 告诉子类刷新内部 bean 工厂。
+			 * 设置了 Bean工厂的序列化id
+ 			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
-			// 准备在此上下文中使用的 bean 工厂。初始化使用到的 BeanFactory
+			/**
+			 * 准备在此上下文中使用的 bean 工厂。
+			 * 初始化使用到的 BeanFactory
+ 			 */
 			prepareBeanFactory(beanFactory);
 
 			try {
@@ -508,13 +514,23 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
-				// 执行自定义的 ProcessorsBeanFactory（Bean工厂后置处理器）
+				/**
+				 * BeanFactory 后置处理器
+				 * 实例化并调用所有已注册的 BeanFactoryPostProcessor bean，遵守显式设置的顺序。 必须在单例实例化之前调用。
+				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
+				/**
+				 * 注册 Bean 后处理器
+				 * 实例化并注册所有 BeanPostProcessor bean，遵守显式顺序。 必须在应用程序 bean 的任何实例化之前调用。
+				 */
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
+				/**
+				 * 初始化消息源。
+				 */
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
@@ -614,12 +630,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * 告诉子类刷新内部 bean 工厂。
 	 * Tell the subclass to refresh the internal bean factory.
 	 * @return the fresh BeanFactory instance
 	 * @see #refreshBeanFactory()
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		// 设置序列化id
 		refreshBeanFactory();
 		return getBeanFactory();
 	}
@@ -643,6 +661,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Configure the bean factory with context callbacks.
 		// 添加了一个应用上下文感知处理器
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
+		// 忽略依赖接口，将这些依赖排除，不解析以下这几个对象
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
 		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
 		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
@@ -690,6 +709,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * 实例化并注册所有 BeanPostProcessor bean，如果给出则遵守显式顺序。 必须在应用程序 bean 的任何实例化之前调用。
 	 * Instantiate and register all BeanPostProcessor beans,
 	 * respecting explicit order if given.
 	 * <p>Must be called before any instantiation of application beans.
@@ -699,12 +719,18 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * 实例化并调用所有已注册的 BeanFactoryPostProcessor bean，遵守显式设置的顺序。 必须在单例实例化之前调用。
 	 * Instantiate and invoke all registered BeanFactoryPostProcessor beans,
 	 * respecting explicit order if given.
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
-		// getBeanFactoryPostProcessors()是获取自定义的 BeanFactory后置处理器
+		/**
+		 * getBeanFactoryPostProcessors()是获取自定义的 BeanFactory 后置处理器；
+		 * 	  这里的自定义是指，我们自己写的，并且没有交给spring管理的，也就是没有@component注解的类
+		 * 	  没有加 @Component注解，自定义的BeanFactoryPOSTProcessing是不生效的，想要生效，我们可以在 refresh() 之前，手动将
+		 * 	  自定义的后置处理器添加到spring容器中；context.
+		 */
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime
