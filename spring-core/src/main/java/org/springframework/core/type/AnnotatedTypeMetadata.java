@@ -16,17 +16,13 @@
 
 package org.springframework.core.type;
 
-import java.lang.annotation.Annotation;
-import java.util.Map;
-
-import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.annotation.*;
 import org.springframework.core.annotation.MergedAnnotation.Adapt;
-import org.springframework.core.annotation.MergedAnnotationCollectors;
-import org.springframework.core.annotation.MergedAnnotationPredicates;
-import org.springframework.core.annotation.MergedAnnotationSelectors;
-import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.lang.Nullable;
 import org.springframework.util.MultiValueMap;
+
+import java.lang.annotation.Annotation;
+import java.util.Map;
 
 /**
  * Defines access to the annotations of a specific type ({@link AnnotationMetadata class}
@@ -54,6 +50,8 @@ public interface AnnotatedTypeMetadata {
 	MergedAnnotations getAnnotations();
 
 	/**
+	 * 确定底层元素是否具有定义的给定类型的注解或元注解。true：表示有注解
+	 *
 	 * Determine whether the underlying element has an annotation or meta-annotation
 	 * of the given type defined.
 	 * <p>If this method returns {@code true}, then

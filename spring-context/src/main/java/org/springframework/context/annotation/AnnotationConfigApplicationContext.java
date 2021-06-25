@@ -68,6 +68,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	/**
 	 * 类路径 Bean 定义扫描器
 	 * 作用：用于扫描在指定路径下所有的Bean
+	 *
+	 *    使用 scanner 扫描出来的类，也是通过 new ScannedGenericBeanDefinition 注册到spring容器的
 	 */
 	private final ClassPathBeanDefinitionScanner scanner;
 

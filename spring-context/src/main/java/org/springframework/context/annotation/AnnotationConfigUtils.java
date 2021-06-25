@@ -181,7 +181,9 @@ public abstract class AnnotationConfigUtils {
 			 *		而 BeanDefinitionRegistryPostProcessor 最终实现了 BeanFactoryPostProcessor 接口
 			 *	普通Java类 转为 springBean的第二种方法：
 			 *		通过BeanDefinition接口的实现类的构造方法，转为springBean对象
-			 *		这种方法一般是 spring内部的对象 转为springBean所用的方式
+			 *			RootBeanDefinition 一般是 spring内部的对象 转为springBean所用的方式
+			 *
+			 *   还有一种是通过 @ComponentScan ，使用 Scan 扫描出来的类，也是通过 new ScannedGenericBeanDefinition 注册到spring容器的
 			 */
 			// 把 ConfigurationClassPostProcessor 包装成一个 RootBeanDefinition--def
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
@@ -279,6 +281,11 @@ public abstract class AnnotationConfigUtils {
 		processCommonDefinitionAnnotations(abd, abd.getMetadata());
 	}
 
+	/**
+	 * 处理通用定义注释
+	 * @param abd AnnotatedBeanDefinition
+	 * @param metadata 带注释的类型元数据
+	 */
 	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
 		if (lazy != null) {

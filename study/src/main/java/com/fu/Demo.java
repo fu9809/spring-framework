@@ -2,6 +2,7 @@ package com.fu;
 
 import com.fu.beanFactoryPostProcessor.MyBeanFactoryPostProcessor;
 import com.fu.beanPostProcessor.IndexDao;
+import com.fu.config.DemoConfig;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
@@ -13,7 +14,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class Demo {
 	public static void main(String[] args) {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.scan("com.fu");
+
+		context.register(DemoConfig.class);
 
 		context.addBeanFactoryPostProcessor(new MyBeanFactoryPostProcessor());
 

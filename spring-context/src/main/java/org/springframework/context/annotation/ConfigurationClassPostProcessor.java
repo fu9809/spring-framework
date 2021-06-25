@@ -203,7 +203,6 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 	}
 
-
 	/**
 	 * 从注册表中的配置类进一步的 beanDefinition。
 	 * Derive further bean definitions from the configuration classes in the registry.
@@ -291,6 +290,11 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		});
 
 		// Detect any custom bean name generation strategy supplied through the enclosing application context
+		/**
+		 * 检测通过封闭应用程序上下文提供的任何自定义 bean 名称生成策略
+		 *
+		 * 检测是否有自定义的 beanName 的生成策略，如果没有，就使用默认的生成策略
+		 */
 		SingletonBeanRegistry sbr = null;
 		if (registry instanceof SingletonBeanRegistry) {
 			sbr = (SingletonBeanRegistry) registry;
@@ -304,31 +308,51 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			}
 		}
 
+		/**
+		 * 检测是否设置了环境，如果没有，则初始化为标准环境
+		 */
 		if (this.environment == null) {
 			this.environment = new StandardEnvironment();
 		}
 
 		// Parse each @Configuration class
+		// 解析每个 @Configuration 类
 		ConfigurationClassParser parser = new ConfigurationClassParser(
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
 
+		/**
+		 * 创建2个set：
+		 * 		candidates 用于将之前加入的 configCandidates 去重
+		 * 		alreadyParsed 用于判断是否已经处理过
+		 */
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
+			/**
+			 * 解析 candidates
+			 *   	candidates 中元素的 BeanDefinition 属性，都是 AnnotatedBeanDefinition 类型，
+			 *   		因为前边的 checkConfigurationClassCandidate 方法已经判断过了，如果不是这个类型，就不会进入到 set 中
+			 *
+			 * 	主要是解析了类的注解，扫描包（配置了 @ComponentScan）
+			 */
 			parser.parse(candidates);
+			// 验证是否是最终的，解析完成
 			parser.validate();
 
 			Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
 			configClasses.removeAll(alreadyParsed);
 
 			// Read the model and create bean definitions based on its content
+			// 读取模型并根据其内容创建 beanDefinition
+			// 把扫描出来的 bean 通过读取器，添加到 BeanDefinitionMap 中
 			if (this.reader == null) {
 				this.reader = new ConfigurationClassBeanDefinitionReader(
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
 			this.reader.loadBeanDefinitions(configClasses);
+			// 记录已经解析过的 bean
 			alreadyParsed.addAll(configClasses);
 
 			candidates.clear();
