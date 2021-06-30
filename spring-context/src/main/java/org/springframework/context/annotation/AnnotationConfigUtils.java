@@ -168,6 +168,30 @@ public abstract class AnnotationConfigUtils {
 		 */
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
 
+		/**
+		 * 接着就是将spring内部的6个对象注入到spring容器中；分别是：
+		 * 		1. org.springframework.context.annotation.internalConfigurationAnnotationProcessor 内部配置注解处理器
+		 * 			注册到spring中的是 ConfigurationClassPostProcessor 类
+		 * 			这个类实现了 BeanDefinitionRegistryPostProcessor 接口，继承自 BeanFactoryPostProcessor 接口
+		 *
+		 * 		2. org.springframework.context.annotation.internalAutowiredAnnotationProcessor 自动装配注解 Bean 后处理器
+		 * 			注册到spring中的是 AutowiredAnnotationBeanPostProcessor 类，其最终实现了 BeanPostProcessor 接口
+		 *
+		 * 		3. org.springframework.context.annotation.internalCommonAnnotationProcessor 内部通用注解处理器
+		 * 			注册到spring中的是 CommonAnnotationBeanPostProcessor 类，其最终实现了 BeanPostProcessor 接口
+		 *
+		 * 		4. org.springframework.context.annotation.internalPersistenceAnnotationProcessor 内部持久化注解处理器
+		 * 			注册到spring中的是 org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor 类，
+		 * 		 	引入了 spring-orm 才会进行注册，因为其不在 spring四大基础模块中，所以通过反射的方式创建的对象
+		 * 		 	其最终实现了 BeanPostProcessor 接口
+		 *
+		 * 		5. org.springframework.context.event.internalEventListenerProcessor 内部事件侦听器处理器
+		 * 			注册到spring中的是 EventListenerMethodProcessor 类，其最终实现了 BeanFactoryPostProcessor 接口
+		 *
+		 * 		6.	org.springframework.context.event.internalEventListenerFactory 内部事件侦听器工厂
+		 * 			注册到spring中的是 DefaultEventListenerFactory 类，其最终实现了 EventListenerFactory 接口
+		 */
+
 		// containsBeanDefinition() : 判断是否包含了具有给定名称的 bean 定义；
 		//		调用了 AbstractApplicationContext中的 containsBeanDefinition 方法，
 		//		最终调用DefaultListableBeanFactory中containsBeanDefinition方法，this.beanDefinitionMap.containsKey(beanName)

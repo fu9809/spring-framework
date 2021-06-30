@@ -1,6 +1,5 @@
 package com.fu;
 
-import com.fu.beanFactoryPostProcessor.MyBeanFactoryPostProcessor;
 import com.fu.beanPostProcessor.IndexDao;
 import com.fu.config.DemoConfig;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -17,7 +16,7 @@ public class Demo {
 
 		context.register(DemoConfig.class);
 
-		context.addBeanFactoryPostProcessor(new MyBeanFactoryPostProcessor());
+//		context.addBeanFactoryPostProcessor(new MyBeanFactoryPostProcessor());
 
 		context.refresh();
 

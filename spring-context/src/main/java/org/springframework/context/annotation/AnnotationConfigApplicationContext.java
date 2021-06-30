@@ -69,6 +69,13 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * 类路径 Bean 定义扫描器
 	 * 作用：用于扫描在指定路径下所有的Bean
 	 *
+	 * 	虽然这是个扫描器，但是完成扫描工作的并不是此 scanner，
+	 * 	是spring自己 new 的一个对象 ClassPathBeanDefinitionScanner 完成的，
+	 * 		扫描工作是 org.springframework.core.io.support.PathMatchingResourcePatternResolver 这个类完成，
+	 * 		通过匹配路径，获取文件夹下文件，扫描文件来完成扫描的
+	 *
+	 * 	这个 scanner 对象只是为了我们能够在外部调用 AnnotationConfigApplicationContext 对象的 scan() 方法
+	 *
 	 *    使用 scanner 扫描出来的类，也是通过 new ScannedGenericBeanDefinition 注册到spring容器的
 	 */
 	private final ClassPathBeanDefinitionScanner scanner;

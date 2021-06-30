@@ -73,8 +73,11 @@ abstract class ConfigurationClassUtils {
 
 
 	/**
-	 * 检查给定的 bean 定义是否是配置类的候选者.或者在配置组件类中声明的嵌套组件类，也可以自动注册
-	 * 		判断 BeanDefinition 是否加了注解
+	 * 检查给定的 bean 定义是否是配置类的候选者.或者在配置组件类中声明的嵌套组件类，也可以自动注册。
+	 *
+	 * 	其实就是判断 BeanDefinition 是否加了 @Configuration, @Component，@Import，@ImportResource，@ComponentScan，@Component，@Bean等注解，
+	 * 	如果加了以上注解就返回 true
+	 *
 	 * Check whether the given bean definition is a candidate for a configuration class
 	 * (or a nested component class declared within a configuration/component class,
 	 * to be auto-registered as well), and mark it accordingly.
@@ -91,11 +94,26 @@ abstract class ConfigurationClassUtils {
 		}
 
 		AnnotationMetadata metadata;
+		/**
+		 * 判断是否加了注解，加了注解的类，肯定就是 AnnotatedBeanDefinition 类型，通过 new AnnotatedGenericBeanDefinition 创建的
+		 * 	因为 class 变成 Bean 的方式，是通过 new BeanDefinition的实现类 来实现的
+		 *
+		 * 	我们自己定义的配置类是这样创建为Bean对象的
+		 * 		context.register(DemoConfig.class);  最终调用的如下方法
+		 * 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+		 *		AnnotatedGenericBeanDefinition 是 AnnotatedBeanDefinition 的实现类
+		 *
+		 * 	而 spring 内部的类，是通过 new RootBeanDefinition() 来创建的
+		 *		RootBeanDefinition 是 AbstractBeanDefinition 的子类，走的是第二个 if 条件
+		 */
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
+			/**
+			 * 先判断是否加了注解，再判断加了什么注解；
+			 * 如果 beanDef 是 AnnotatedBeanDefinition 的实例，并且 className 和 BeanDefinition中的元数据的类名相同，
+			 * 则直接从BeanDefinition中获取元数据
+			 */
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
-			// 如果 beanDef 是 AnnotatedBeanDefinition的实例，并且 className 和 BeanDefinition中的元数据的类名相同，
-			// 则直接从BeanDefinition中获取元数据
 			metadata = ((AnnotatedBeanDefinition) beanDef).getMetadata();
 		}
 		else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
@@ -104,7 +122,13 @@ abstract class ConfigurationClassUtils {
 			// 如果 BeanDefinition 是 AbstractBeanDefinition的实例，并且 beanDef 有 BeanClass 属性存在
 			// 则实例化 StandardAnnotationMetadata
 			Class<?> beanClass = ((AbstractBeanDefinition) beanDef).getBeanClass();
-			// 如果可以转换为以下几种类型，则直接返回false
+			/**
+			 * 	确定此Class对象表示的类或接口是否与指定的Class参数表示的类或接口相同，或者是其超类或超接口。
+			 * 		如果是，则返回true ； 否则返回false 。
+			 * 	如果此Class对象表示原始类型，则如果指定的Class参数正是此Class对象，则此方法返回true ； 否则返回false 。
+			 *
+			 * 	spring内部的6个对象，都是属于以下4个接口的子类，所以都直接返回 false，表示不需要解析这6个类
+			 */
 			if (BeanFactoryPostProcessor.class.isAssignableFrom(beanClass) ||
 					BeanPostProcessor.class.isAssignableFrom(beanClass) ||
 					AopInfrastructureBean.class.isAssignableFrom(beanClass) ||
@@ -134,15 +158,15 @@ abstract class ConfigurationClassUtils {
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
 			/**
-			 * 如果加了@Configuration 注解，并且 proxyBeanMethods = true; 代理 Bean 方法
-			 * 		将BeanDefinition 的 configurationClass 属性设置为 full
+			 * 如果加了 @Configuration 注解，并且 proxyBeanMethods = true; 代理 Bean 方法
+			 * 	则将BeanDefinition 的 configurationClass 属性设置为 full
 			 */
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
 		else if (config != null || isConfigurationCandidate(metadata)) {
 			/**
-			 * 如果加了注解，并且 proxyBeanMethods = false;
-			 * 或者没有 @Configuration 注解，但是有 @Import，@ImportResource，@ComponentScan，@Component，@Bean中的一个，
+			 * 如果加了 @Configuration 注解，并且 proxyBeanMethods = false;
+			 * 或者没有 @Configuration 注解，但是有 @Import，@ImportResource，@ComponentScan，@Component 中的一个，或者方法里有 @Bean
 			 * 		则将BeanDefinition 的 configurationClass 属性设置为 lite
 			 */
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
@@ -163,6 +187,9 @@ abstract class ConfigurationClassUtils {
 	}
 
 	/**
+	 * 检查配置类候选的给定的元数据（或在配置组件类中声明的嵌套组件类）
+	 * 判断是否加了 @Component，@ComponentScan，@Import，@ImportResource 注解，或者方法里有 @Bean
+	 *
 	 * Check the given metadata for a configuration class candidate
 	 * (or nested component class declared within a configuration/component class).
 	 * @param metadata the metadata of the annotated class

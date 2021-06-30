@@ -220,7 +220,12 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 		this.registriesPostProcessed.add(registryId);
 
-		// 处理 配置类BeanDefinition；处理用户自定义的SpringBean
+		/**
+		 * 根据传入的注册器，构建和验证配置模型
+		 *
+		 * 处理 ConfigBeanDefinition；处理用户自定义的SpringBean
+		 * 加载 springBean
+		 */
 		processConfigBeanDefinitions(registry);
 	}
 
@@ -247,14 +252,22 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	}
 
 	/**
-	 * 根据传入的注册器，构建和验证 配置模型
+	 * 根据传入的注册器，构建和验证 配置模型，
+	 * 		最重要的事情就是，扫描并加载了自定义的 BeanDefinition
 	 * 1. 判断BeanDefinition是否有 @Configuration,@Component 等注解
 	 *
 	 * Build and validate a configuration model based on the registry of
 	 * {@link Configuration} classes.
 	 */
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
+		/**
+		 * 定义一个 BeanDefinitionHolder 的集合，用于存放需要解析的配置类，即注册到spring中的自定义配置类
+		 * 		context.register(DemoConfig.class); 即存放的是 DemoConfig.class
+		 */
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
+		/**
+		 * 获取容器中注册的所有的 bean的名字
+		 */
 		String[] candidateNames = registry.getBeanDefinitionNames();
 
 		for (String beanName : candidateNames) {
@@ -262,14 +275,18 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			if (beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE) != null) {
 				// 如果 BeanDefinition 的属性 configurationClass 有值，证明已经处理过了，无需再次处理
 				if (logger.isDebugEnabled()) {
+					// Bean 定义已经作为配置类进行了处理：
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
 			/**
 			 * checkConfigurationClassCandidate() 判断BeanDefinition是否
 			 * 		有 @Configuration,@Component，@Import，@ImportResource，@ComponentScan，@Component，@Bean等注解
+			 *
 			 * 	如果是 @Configuration && proxyBeanMethods == true ，则此 beanDef 是个配置类，configurationClass 为 full
-			 * 	如果是 proxyBeanMethods == false 或者 加了其他注解；则此 beanDef 是个配置类，configurationClass 为 lite
+			 * 	如果是 @Configuration && proxyBeanMethods == false 或者 加了其他注解；则此 beanDef 是个配置类，configurationClass 为 lite
+			 *
+			 * 	返回 true 都需要进行解析
 			 */
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
@@ -334,7 +351,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			 *   	candidates 中元素的 BeanDefinition 属性，都是 AnnotatedBeanDefinition 类型，
 			 *   		因为前边的 checkConfigurationClassCandidate 方法已经判断过了，如果不是这个类型，就不会进入到 set 中
 			 *
-			 * 	主要是解析了类的注解，扫描包（配置了 @ComponentScan）
+			 * 	主要是解析了类的注解，扫描包（配置了 @ComponentScan），从而将 BeanDefinition 加载到spring中
 			 */
 			parser.parse(candidates);
 			// 验证是否是最终的，解析完成
